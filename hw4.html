@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<meta charset="utf-8"> 
+<html>
+
+<script type="text/javascript">
+
+window.addEventListener('error', (error) => {
+    console.log('Error catched:', error);
+}, true)
+
+function processForm() {
+  var x = document.forms["myForm"]["fname"].value;
+  if (x == "") {
+    alert("File name must be filled out");
+    return false;
+  }
+  else {
+  	var content;
+  	try {
+  		content = JSON.parse(loadJSON(x));
+  		createTable(content);
+  	}
+  	catch {
+  		alert("Can't find the required file.");
+  		return false;
+	}
+  }
+}
+
+
+var jsonDoc;
+function loadJSON (url) {
+	var xmlhttp=new XMLHttpRequest();
+	xmlhttp.open("GET",url,false); //open, send, responseText are
+	xmlhttp.send(); //properties of XMLHTTPRequest
+
+	jsonDoc=xmlhttp.responseText;
+	return jsonDoc;
+ }
+
+
+function createTable(contents) {
+	var newWindow = window.open("", "", "width=2000, height=1000");
+
+	if (contents.Mainline.Table.Row==null) {
+		newWindow.document.write("<h2 style='text-align:center;'>No Car Manufacturers In Current JSON File.</h2>");
+	}
+	else {
+		newWindow.document.write("<html style='overflow:scroll;'>");
+		cols = Object.keys(contents.Mainline.Table.Header.Data).length;
+		rows = Object.keys(contents.Mainline.Table.Row).length;
+
+		newWindow.document.write("<table style='width:100%' border>");
+		newWindow.document.write("<tr>");
+		for (i=0; i<cols; i++) {
+			newWindow.document.write("<th>" + contents.Mainline.Table.Header.Data[i] + "</th>");
+		}
+		newWindow.document.write("</tr>");
+
+		for (i=0; i<rows; i++) {
+			contents_Row = contents.Mainline.Table.Row[i]
+			newWindow.document.write("<tr>");
+			for (let key of Object.keys(contents_Row)) {
+				if (key=="Hubs"){
+					newWindow.document.write("<td>");
+					if (contents_Row[key].Hub.length != 0) {
+						newWindow.document.write("<ul style='text-align:left;'>");
+						for (k=0; k<contents_Row[key].Hub.length; k++) {
+							if (k==0) {
+								newWindow.document.write("<li style='font-weight:bold;'>" + contents_Row[key].Hub[k] + "</li>");
+							}
+							else {
+								newWindow.document.write("<li>" + contents_Row[key].Hub[k] + "</li>");
+							}
+						}
+						newWindow.document.write("</ul>");
+					}
+					newWindow.document.write("</td>");
+				}
+				else if (key=="HomePage") {
+					newWindow.document.write("<td><a href='" + contents_Row[key] + "'>" + contents_Row[key] + "</a></td>");
+				}
+				else if (key=="Logo") {
+					newWindow.document.write("<td style='text-align:center;'>");
+					newWindow.document.write("<img src=" + contents_Row[key] + ">");
+					newWindow.document.write("</td>");
+				}
+				else {
+					newWindow.document.write("<td>" + contents_Row[key] + "</td>");
+				}
+			}
+			newWindow.document.write("</tr>");
+		}
+		newWindow.document.write("</table>");
+		newWindow.document.write("</html>");
+	}
+
+	
+	newWindow.document.close();
+}
+
+
+</script> 
+<head>
+<style>
+table, th, td {
+  border: 1px solid black;
+}
+</style>
+</head>
+<body style="text-align: center;">
+
+<form name="myForm" onsubmit="return processForm()" method="post">
+  <h2>Enter URL for Largest manufacturers by production (2017) List JSON File</h2>
+  <input type="text" name="fname"></br></br>
+  <input type="submit" value="Submit Query">
+</form>
+
+</body>
+</html>
